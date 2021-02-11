@@ -11,8 +11,6 @@ def take_screenshot(file_name='screen.png'):
     image = pyautogui.screenshot()
     image = cv.cvtColor(np.array(image), cv.COLOR_BGR2GRAY)
     return image
-    # cv.imwrite("resources/" + file_name, image)
-    # return cv.imread("resources/" + file_name, 0)
 
 
 def check_args(args):
@@ -26,7 +24,7 @@ def check_args(args):
 class AutoClick:
     def __init__(self):
         self._running = False
-        self._template = cv.imread('resources/cat-eye.png', 0)
+        self._template = cv.imread('resources/replay.png', 0)
         self._template_w, self.template_h = self._template.shape[::-1]
 
     def terminate(self):
@@ -36,9 +34,8 @@ class AutoClick:
         self._running = True
         while self._running:
             img = take_screenshot()
-            cv.imwrite('screen_grayed.png', img)
             res = cv.matchTemplate(img, self._template, cv.TM_CCOEFF_NORMED)
-            threshold = 0.95
+            threshold = 0.8
             position = np.where(res >= threshold)
             if len([p for p in zip(*position[::-1])]) > 0:
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
@@ -46,13 +43,14 @@ class AutoClick:
                 bottom_right = (top_left[0] + self._template_w, top_left[1] + self.template_h)
                 mouse_x, mouse_y = mouse.get_position()
                 mouse.move((top_left[0] + bottom_right[0]) / 2, (top_left[1] + bottom_right[1]) / 2)
-                mouse.click(mouse.LEFT)
+                mouse.click('left')
+                time.sleep(0.5)
                 mouse.move(mouse_x, mouse_y)
             time.sleep(float(args['FREQUENCY']))
 
 
 if __name__ == "__main__":
-    layout = [ [sg.Text('Frequency [s]:'), sg.Input(key='FREQUENCY', size=(10, 1)), sg.Text(key='FREQ_ERROR', size=(20, 1))],
+    layout = [ [sg.Text('Frequency [s]:'), sg.Input('5', key='FREQUENCY', size=(10, 1)), sg.Text(key='FREQ_ERROR', size=(20, 1))],
             [sg.Button('Start', key='START'), sg.Button('Stop', key='STOP', disabled=True), sg.Text(key='RUNNING', size=(10, 1))] ]
 
     window = sg.Window('Auto Clicker', layout)
@@ -82,19 +80,3 @@ if __name__ == "__main__":
             ac.terminate()
 
     window.close()
-
-
-#     take_screenshot()
-#
-#
-# img = pyautogui.screenshot()
-# img = cv.cvtColor(np.array(img), cv.COLOR_RGB2BGR)
-# cv.imwrite('resources/screen.png', img)
-# img = cv.imread('resources/screen.png', 0)
-# template = cv.imread('resources/cat-eye.png', 0)
-# w, h = template.shape[::-1]
-# res = cv.matchTemplate(img, template, eval('cv.TM_CCOEFF'))
-# min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-# top_left = max_loc
-# bottom_right = (top_left[0] + w, top_left[1] + h)
-# mouse.move((top_left[0] + bottom_right[0]) / 2, (top_left[1] + bottom_right[1]) / 2)
